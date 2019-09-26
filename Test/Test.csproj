@@ -13,4 +13,10 @@
     <ProjectReference Include="..\Fas\Fas.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="fas.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

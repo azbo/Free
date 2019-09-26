@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Free
+namespace Service
 {
     public class Class1
     {

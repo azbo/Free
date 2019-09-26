@@ -5,3 +5,9 @@
 /.vs
 /Free/obj
 /Web/obj
+/Fas/bin/Debug/netcoreapp3.0
+/Fas/obj
+/Service/obj
+/Test/bin/Debug/netcoreapp3.0
+/Test/obj
+/Web/bin/Debug/netcoreapp3.0

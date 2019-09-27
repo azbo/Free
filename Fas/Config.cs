@@ -10,7 +10,11 @@ namespace Fas.Config
 {
     public class Config
     {
-        private NameValueCollection _conf;
+        private readonly NameValueCollection _conf;
+        private readonly Dictionary<string, string> _env;
+
+        public static Config Instance { get; } = new Config();
+
         static Config()
         {
 
@@ -18,57 +22,42 @@ namespace Fas.Config
 
         private Config()
         {
+            _conf = new NameValueCollection();
+            _env = new Dictionary<string, string>();
+
             string confPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "fas.conf");
             if (!File.Exists(confPath)) return;
 
             XmlDocument x = new XmlDocument();
             x.Load(confPath);
-
-            XmlNode root = x.DocumentElement;
-
-            XmlNode node = root.SelectSingleNode("databases");
-            if (node == null || node.ChildNodes.Count == 0) return;
-            foreach (XmlNode item in node.ChildNodes)
+            string url = Environment.GetEnvironmentVariable("FASURL");
+            if (!string.IsNullOrEmpty(url))
             {
-                if (item.Name == "add")
-                {
-                    string name = item.Attributes["name"]?.Value;
-                    if (string.IsNullOrEmpty(name)) continue;
-
-                    string connectionString = item.Attributes["connectionString"]?.Value;
-                    if (string.IsNullOrEmpty(connectionString)) continue;
-
-                    string provider = item.Attributes["providerName"]?.Value;
-                    if (string.IsNullOrEmpty(provider)) continue;
-
-                    _conf["databases.name"] = name;
-
-                    _conf["databases.provider"] = provider;
-
-                    _conf["databases.connectionString"] = connectionString;
-                }
+                string result = new HttpClient().GetAsync(url).Result.Content.ReadAsStringAsync().Result;
+                _env = JsonSerializer.Deserialize<Dictionary<string, string>>(result);
             }
-            /*
-            string url = Environment.GetEnvironmentVariable("fas_conf_url");
-            if (string.IsNullOrEmpty(url))
-            {
-                loadXml(confPath);
-                return;
-            }
-            string result = new HttpClient().GetAsync(url).Result.Content.ReadAsStringAsync().Result;
-
-            List<Dictionary<string, string>> list = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(result);
-
-            string text = File.ReadAllText(confPath);
-            foreach (var item in list)
-            {
-                //text = text.Replace(,"");
-            }
-
-    */
+            LoadXml(x.DocumentElement);
         }
 
-        public static Config Instance { get; } = new Config();
+        private void LoadXml(XmlNode node, string key = "")
+        {
+            key += string.IsNullOrEmpty(key) ? node.Name : $".{node.Name}";
+
+            foreach (XmlAttribute attr in node.Attributes)
+            {
+                if (_env.ContainsKey(attr.Value))
+                {
+                    _conf[$"{key}.{attr.Name}"] = _env[attr.Value];
+                    continue;
+                }
+                _conf[$"{key}.{attr.Name}"] = attr.Value;
+            }
+
+            foreach (XmlNode child in node.ChildNodes)
+            {
+                LoadXml(child, key);
+            }
+        }
 
         public string GetConfig(string key)
         {

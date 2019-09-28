@@ -26,7 +26,10 @@ namespace Fas.Config
             _env = new Dictionary<string, string>();
 
             string confPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "fas.conf");
-            if (!File.Exists(confPath)) return;
+            if (!File.Exists(confPath))
+            {
+                return;
+            }
 
             XmlDocument x = new XmlDocument();
             x.Load(confPath);

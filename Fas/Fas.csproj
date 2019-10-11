@@ -4,4 +4,18 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="FTemplate\**" />
+    <Compile Remove="Template\**" />
+    <EmbeddedResource Remove="FTemplate\**" />
+    <EmbeddedResource Remove="Template\**" />
+    <None Remove="FTemplate\**" />
+    <None Remove="Template\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JinianNet.JNTemplate" Version="1.3.3" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.0.0" />
+  </ItemGroup>
+
 </Project>

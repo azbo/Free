@@ -1,8 +1,8 @@
-﻿using Fas.Engine;
+﻿using Fas;
+using Fas.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
 using System.Reflection;
 using System.Xml;
 using Test.query;
@@ -11,80 +11,94 @@ namespace Test
 {
     class Program
     {
+        static ILogger log = Logger.GetLogger<Program>();
         static void Main(string[] args)
         {
-            TemplateEngine engine = new TemplateEngine();
-            engine.BeginInit();
+            Config config = Config.Instance;
 
-            Dictionary<string, object> di = new Dictionary<string, object>();
-            di["test"] = "122121";
-            using (StringWriter writer = new StringWriter())
+
+            log.Info("111111");
+
+            var queryProxy = DispatchProxy.Create<ISql, SqlProxy>();
+
+            User user = new User()
             {
-                engine.Process(di, "listHw", writer,"listhw");
-            }
-
-            //object obj = Activator.CreateInstance(Type.GetType("MySql.Data.MySqlClient.MySqlClientFactory"));
-
-            var queryProxy = DispatchProxy.Create<HomeWorkMapper, QueryProxy>();
-
-            List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
-            Dictionary<string, string> dict = new Dictionary<string, string>();
-            dict["id"] = "a";
-            dict["age"] = "12";
-
-            list.Add(dict);
+                UserName = "test1",
+                PassWord = "azbo1020",
+                Age = 12,
+                Sex = true
+            };
             //执行接口方法
-            int rows = queryProxy.Insert(list);
+            int rows = (int)queryProxy.insert(user, "save");
 
-            TestInstance testInstance = new TestInstance();
-            testInstance.TestMethod();
-        }
-
-        private static NameValueCollection _conf = new NameValueCollection();
-
-        static void LoadXml(XmlNode node, string path = "")
-        {
-            path += string.IsNullOrEmpty(path) ? node.Name : $".{node.Name}";
-
-            foreach (XmlAttribute attr in node.Attributes)
-            {
-                _conf[$"{path}.{attr.Name}"] = attr.Value;
-            }
-
-            foreach (XmlNode child in node.ChildNodes)
-            {
-                LoadXml(child, path);
-            }
-        }
-
-        [Query]
-        public class TestInstance : ContextBoundObject
-        {
-            public void TestMethod()
-            {
-                Console.WriteLine("MethodAction……");
-            }
+            rows = (int)queryProxy.insert(user, "saveList");
         }
     }
-
-    public interface Homework
+    public class SqlProxy : DispatchProxy
     {
-        //这个方法会被代理类实现
-        void Insert(string str);
-    }
-
-    public class QueryProxy : DispatchProxy
-    {
+        private static NameValueCollection _conf;
+        private static DateTime _dt;
         /// <summary>
         /// 拦截调用
         /// </summary>
         /// <param name="method">所拦截的方法信息</param>
         /// <param name="parameters">所拦截方法被传入的参数指</param>
         /// <returns></returns>
-        protected override object Invoke(MethodInfo targetMethod, object[] args)
+        protected override object Invoke(MethodInfo m, object[] args)
         {
-            Console.WriteLine(args[0]);
+            ParameterInfo[] infos = m.GetParameters();
+
+            string action = infos[0].ParameterType.Name;
+
+            SqlConfig sc = SqlConfig.Instance.Load(action);
+
+            string tableName = sc.Get<string>($"{m.Name}.tableName");
+
+            string key = $"{m.Name}.{args[1]}";
+
+            Dictionary<string, string> dict = sc.Get<Dictionary<string, string>>(key);
+
+            string fieldValue = sc.Get<string>($"{m.Name}.field.{dict["id"]}");
+
+            string sql = "";
+            switch (action)
+            {
+                case "insert":
+                    if (dict["value"].IndexOf("insert") == 0)
+                        sql = $"insert into {tableName}({fieldValue}) values()";
+
+                    break;
+                case "remove":
+                    break;
+                case "modify":
+                    break;
+                case "query":
+                    break;
+                default:
+                    break;
+            }
+
+            //(string, object, string) result = s(key);
+
             return 1;
+        }
+
+        private void LoadXml(XmlNode node, string key = "")
+        {
+            key += string.IsNullOrEmpty(key) ? node.Name : $".{node.Name}";
+
+            foreach (XmlNode child in node.ChildNodes)
+            {
+                foreach (XmlAttribute attr in child.Attributes)
+                {
+                    if (attr.Name == "id")
+                    {
+                        _conf[$"{key}.{child.Name}.{attr.Value}"] = child.Value;
+                        continue;
+                    }
+                    _conf[$"{key}.{child.Name}.{attr.Name}"] = attr.Value;
+                }
+            }
         }
     }
 }

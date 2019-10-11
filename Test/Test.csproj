@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="3.0.0" />
+    <PackageReference Include="Npgsql" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,7 +16,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="fas.config">
+    <Reference Include="JinianNet.JNTemplate">
+      <HintPath>JinianNet.JNTemplate.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App_Data\fas.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="App_Data\User.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,11 +1,16 @@
-﻿using System.Data;
+﻿using Fas.Logging;
+using Microsoft.Extensions.Caching.Memory;
+using System.Data;
 using System.Data.Common;
 
 namespace Fas.Sql
 {
     public class Ado
     {
-        private static readonly DbProviderFactory _fac;
+        private static readonly MemoryCache cache = new MemoryCache(new MemoryCacheOptions());
+        private readonly ILogger log = Logger.GetLogger<Ado>();
+
+        private static DbProviderFactory fac;
 
         public static Ado Instance { get; } = new Ado();
 
@@ -16,6 +21,7 @@ namespace Fas.Sql
 
         private Ado()
         {
+
         }
 
         private static DbCommand GetCommand(DbConnection cnt, string sql, params DbParameter[] paramers)
@@ -39,7 +45,7 @@ namespace Fas.Sql
 
         private static DbConnection GetConnection()
         {
-            DbConnection cnt = _fac.CreateConnection();
+            DbConnection cnt = fac.CreateConnection();
             cnt.ConnectionString = "Server=103.224.250.145;Port=3306;Database=bopay;User=BOPAY;Password=NZ6K8KkxePn2zfL2;";
 
             if (cnt.State != ConnectionState.Open)

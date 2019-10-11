@@ -6,11 +6,20 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Xml;
 
-namespace Fas.Config
+namespace Fas
 {
     public class Config
     {
         private readonly NameValueCollection _conf;
+
+        public virtual string this[string key]
+        {
+            get
+            {
+                return _conf[key];
+            }
+        }
+
         private readonly Dictionary<string, string> _env;
 
         public static Config Instance { get; } = new Config();
@@ -25,7 +34,7 @@ namespace Fas.Config
             _conf = new NameValueCollection();
             _env = new Dictionary<string, string>();
 
-            string confPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "fas.conf");
+            string confPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "fas.xml");
             if (!File.Exists(confPath))
             {
                 return;
@@ -60,11 +69,6 @@ namespace Fas.Config
             {
                 LoadXml(child, key);
             }
-        }
-
-        public string GetConfig(string key)
-        {
-            return _conf[key];
         }
     }
 }

@@ -1,0 +1,8 @@
+D:\work\net\azbo\Fas\JNTemplate\bin\Debug\netcoreapp3.0\JNTemplate.deps.json
+D:\work\net\azbo\Fas\JNTemplate\bin\Debug\netcoreapp3.0\JNTemplate.dll
+D:\work\net\azbo\Fas\JNTemplate\bin\Debug\netcoreapp3.0\JNTemplate.pdb
+D:\work\net\azbo\Fas\JNTemplate\obj\Debug\netcoreapp3.0\JNTemplate.csprojAssemblyReference.cache
+D:\work\net\azbo\Fas\JNTemplate\obj\Debug\netcoreapp3.0\JNTemplate.AssemblyInfoInputs.cache
+D:\work\net\azbo\Fas\JNTemplate\obj\Debug\netcoreapp3.0\JNTemplate.AssemblyInfo.cs
+D:\work\net\azbo\Fas\JNTemplate\obj\Debug\netcoreapp3.0\JNTemplate.dll
+D:\work\net\azbo\Fas\JNTemplate\obj\Debug\netcoreapp3.0\JNTemplate.pdb

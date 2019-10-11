@@ -7,7 +7,6 @@ namespace Fas.Sql
         protected override object Invoke(MethodInfo m, object[] args)
         {
 
-
             return "";
         }
     }

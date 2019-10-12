@@ -3,6 +3,7 @@ using Fas.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Reflection;
 using System.Xml;
 using Test.query;
@@ -14,11 +15,6 @@ namespace Test
         static ILogger log = Logger.GetLogger<Program>();
         static void Main(string[] args)
         {
-            Config config = Config.Instance;
-
-
-            log.Info("111111");
-
             var queryProxy = DispatchProxy.Create<ISql, SqlProxy>();
 
             User user = new User()
@@ -66,7 +62,6 @@ namespace Test
                 case "insert":
                     if (dict["value"].IndexOf("insert") == 0)
                         sql = $"insert into {tableName}({fieldValue}) values()";
-
                     break;
                 case "remove":
                     break;

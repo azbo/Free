@@ -1,83 +1,76 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Fas.Logging
 {
     public class Logger : ILogger
     {
-        private static readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        static StackTrace st = new StackTrace();
 
-        private static string type;
+        private static Logger Instance { get; } = new Logger();
 
-        public bool IsDebugEnabled
+        static Logger()
         {
-            get
-            {
-#if (DEBUG)
-                return true;
-#else
-                return false;
-#endif
-            }
+
         }
 
-        public bool IsInfoEnabled { get; } = true;
+        private Logger()
+        {
 
-        public bool IsWarnEnabled { get; } = true;
+        }
 
-        public bool IsErrorEnabled { get; } = true;
+        private static Type t;
 
-        public bool IsFatalEnabled { get; } = true;
+        private Logger UseType<T>()
+        {
+            t = typeof(T);
+            return this;
+        }
+
+        private static readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public void Debug(string msg, params object[] args)
         {
 #if (DEBUG)
-            WriteToFile(string.Format(msg, args));
+            WriteToFile(string.Format(msg, args), "Debug");
 #endif
         }
 
         public void Error(string msg, params object[] args)
         {
-            WriteToFile(string.Format(msg, args));
+            WriteToFile(string.Format(msg, args), "Error");
         }
 
         public void Fatal(string msg, params object[] args)
         {
-            WriteToFile(string.Format(msg, args));
+            WriteToFile(string.Format(msg, args), "Fatal");
         }
 
         public void Info(string msg, params object[] args)
         {
-            WriteToFile(string.Format(msg, args));
+            WriteToFile(string.Format(msg, args), "Info");
         }
 
         public void Warn(string msg, params object[] args)
         {
-            WriteToFile(string.Format(msg, args));
+            WriteToFile(string.Format(msg, args), "Warn");
         }
 
-        private static void WriteToFile(string strContent)
+        private static void WriteToFile(string msg, string level)
         {
-            Config config = Config.Instance;
+            var fas = Config.Instance["fas"];
 
-            string filename = config["fas.log.file"];
-
-            string dir = config["fas.dir"];
-            if (string.IsNullOrEmpty(dir))
-            {
-                filename = filename.Replace("${dir}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
-            }
-
-            filename = Regex.Replace(filename, @"\$\{(\w+)\}", GetKey);
+            string logPath = fas["logPath"];
+            string logMsg = fas["logMsg"];
 
             _lock.EnterWriteLock();
             try
             {
-                using StreamWriter writer = new StreamWriter(filename, true, new UTF8Encoding(false, true));
-                writer.WriteAsync(strContent);
+                using StreamWriter writer = new StreamWriter(logPath, true, new UTF8Encoding(false, true));
+                writer.WriteLineAsync(string.Format(logMsg, level, t.FullName, msg));
             }
             finally
             {
@@ -85,14 +78,9 @@ namespace Fas.Logging
             }
         }
 
-        private static string GetKey(Match match)
-        {
-            return Config.Instance[$"fas.{match.Groups[1].Value}"];
-        }
-
         public static ILogger GetLogger<T>()
         {
-            return new Logger();
+            return Instance.UseType<T>();
         }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using Fas;
 using Fas.Logging;
-using System;
-using System.Collections.Generic;
+using Fas.Sql;
+using System.Collections;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Reflection;
-using System.Xml;
-using Test.query;
+using Test.sql;
 
 namespace Test
 {
@@ -15,85 +13,42 @@ namespace Test
         static ILogger log = Logger.GetLogger<Program>();
         static void Main(string[] args)
         {
-            var queryProxy = DispatchProxy.Create<ISql, SqlProxy>();
+            //MySql.Data.MySqlClient.MySqlClientFactory
 
-            User user = new User()
-            {
-                UserName = "test1",
-                PassWord = "azbo1020",
-                Age = 12,
-                Sex = true
+            var queryProxy = DispatchProxy.Create<ISqlXml, SqlProxy>();
+
+            DbData novel = new DbData("Novel") {
+                {"category","1"},
+                {"title","1"},
+                {"author","1"},
+                {"pic","1"},
+                {"content","1"},
+                {"tag","1"},
+                {"up","1"},
+                {"down","1"},
+                {"hits","1"},
+                {"rating","1"},
+                {"rating_count","1"},
+                {"serialize","1"},
+                {"favorites","1"},
+                {"position","1"},
+                {"template","1"},
+                {"link","1"},
+                {"create_time","1"},
+                {"update_time","1"},
+                {"reurl","1"},
+                {"status","1"},
+                {"hits_day","1"},
+                {"hits_week","1"},
+                {"hits_month","1"},
+                {"hits_time","1"},
+                {"word","1"},
+                {"recommend","1"},
             };
             //执行接口方法
-            int rows = (int)queryProxy.insert(user, "save");
+            int rows = (int)queryProxy.Insert(novel, "Save");
 
-            rows = (int)queryProxy.insert(user, "saveList");
-        }
-    }
-    public class SqlProxy : DispatchProxy
-    {
-        private static NameValueCollection _conf;
-        private static DateTime _dt;
-        /// <summary>
-        /// 拦截调用
-        /// </summary>
-        /// <param name="method">所拦截的方法信息</param>
-        /// <param name="parameters">所拦截方法被传入的参数指</param>
-        /// <returns></returns>
-        protected override object Invoke(MethodInfo m, object[] args)
-        {
-            ParameterInfo[] infos = m.GetParameters();
-
-            string action = infos[0].ParameterType.Name;
-
-            SqlConfig sc = SqlConfig.Instance.Load(action);
-
-            string tableName = sc.Get<string>($"{m.Name}.tableName");
-
-            string key = $"{m.Name}.{args[1]}";
-
-            Dictionary<string, string> dict = sc.Get<Dictionary<string, string>>(key);
-
-            string fieldValue = sc.Get<string>($"{m.Name}.field.{dict["id"]}");
-
-            string sql = "";
-            switch (action)
-            {
-                case "insert":
-                    if (dict["value"].IndexOf("insert") == 0)
-                        sql = $"insert into {tableName}({fieldValue}) values()";
-                    break;
-                case "remove":
-                    break;
-                case "modify":
-                    break;
-                case "query":
-                    break;
-                default:
-                    break;
-            }
-
-            //(string, object, string) result = s(key);
-
-            return 1;
-        }
-
-        private void LoadXml(XmlNode node, string key = "")
-        {
-            key += string.IsNullOrEmpty(key) ? node.Name : $".{node.Name}";
-
-            foreach (XmlNode child in node.ChildNodes)
-            {
-                foreach (XmlAttribute attr in child.Attributes)
-                {
-                    if (attr.Name == "id")
-                    {
-                        _conf[$"{key}.{child.Name}.{attr.Value}"] = child.Value;
-                        continue;
-                    }
-                    _conf[$"{key}.{child.Name}.{attr.Name}"] = attr.Value;
-                }
-            }
+            rows = (int)queryProxy.Insert(novel, "SaveList");
         }
     }
 }

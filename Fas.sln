@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fas", "Fas\Fas.csproj", "{E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{1C96F4A7-194D-4FD7-BBE1-727BA669A2EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncStory", "SyncStory\SyncStory.csproj", "{1A10C606-FCBD-486B-90E5-B014708A5E8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1C96F4A7-194D-4FD7-BBE1-727BA669A2EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C96F4A7-194D-4FD7-BBE1-727BA669A2EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C96F4A7-194D-4FD7-BBE1-727BA669A2EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A10C606-FCBD-486B-90E5-B014708A5E8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A10C606-FCBD-486B-90E5-B014708A5E8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A10C606-FCBD-486B-90E5-B014708A5E8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A10C606-FCBD-486B-90E5-B014708A5E8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

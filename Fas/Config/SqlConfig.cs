@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Fas.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,12 +9,27 @@ namespace Fas
 {
     public class SqlConfig
     {
+        private static ILogger log = Logger.GetLogger<SqlConfig>();
+        private static string _m;
         private static readonly MemoryCache cache = new MemoryCache(new MemoryCacheOptions());
-        public static SqlConfig Instance { get; } = new SqlConfig();
 
-        static SqlConfig()
+        public virtual Dictionary<string, string> this[string key]
         {
+            get
+            {
+                var dict = cache.Get<Dictionary<string, Dictionary<string, string>>>(_m);
+                if (dict.ContainsKey(key))  return dict[key];
+                return new Dictionary<string, string>();
+            }
+        }
 
+        public virtual string this[string k1, string k2]
+        {
+            get
+            {
+                if (this[k1].ContainsKey(k2)) return this[k1][k2];
+                return null;
+            }
         }
 
         private SqlConfig()
@@ -21,63 +37,67 @@ namespace Fas
 
         }
 
-        public SqlConfig Load(string m)
+        public SqlConfig(string m)
         {
-            string sqlXml = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", $"{m}.xml");
-            if (!File.Exists(sqlXml))
+            _m = m;
+            try
             {
-                throw new Exception("未查到相关文件");
-            }
+                string sqlXml = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", $"{m}.xml");
+                if (!File.Exists(sqlXml))
+                {
+                    throw new Exception("未查到相关文件");
+                }
 
-            FileInfo fi = new FileInfo(sqlXml);
+                FileInfo fi = new FileInfo(sqlXml);
 
-            string timeKey = $"{m}.lastTime";
+                var dict = cache.Get<Dictionary<string, Dictionary<string, string>>>(m) ?? new Dictionary<string, Dictionary<string, string>>() { { "file", new Dictionary<string, string>() { { "update", "" } } } };
 
-            if (cache.Get<DateTime>(timeKey) != fi.LastWriteTime)
-            {
-                cache.Set(timeKey, fi.LastWriteTime);
+                if (dict["file"]["update"] == fi.LastWriteTime.ToString()) return;
+
+                dict["file"]["update"] = fi.LastWriteTime.ToString();
 
                 XmlDocument x = new XmlDocument();
                 x.Load(fi.OpenText());
 
                 XmlNode root = x.DocumentElement;
 
+                var dict2 = new Dictionary<string, string>();
                 foreach (XmlAttribute attr in root.Attributes)
                 {
-                    cache.Set($"{m}.{attr.Name}", attr.Value);
+                    dict2[$"{attr.Name}"] = attr.Value;
                 }
+                dict[root.Name] = dict2;
 
                 foreach (XmlNode node in root.ChildNodes)
                 {
-                    if (node.Name == "field")
+                    dict2 = new Dictionary<string, string>();
+                    foreach (XmlAttribute attr in node.Attributes)
                     {
-                        foreach (XmlAttribute attr in node.Attributes)
-                        {
-                            cache.Set($"{m}.field.{attr.Name}", attr.Value);
-                        }
-                        continue;
+                        dict2[attr.Name] = attr.Value;
                     }
+                    dict[node.Name] = dict2;
 
                     foreach (XmlNode node2 in node.ChildNodes)
                     {
-                        Dictionary<string, string> dict = new Dictionary<string, string>();
-                        foreach (XmlAttribute attr in node.Attributes)
+                        dict2 = new Dictionary<string, string>();
+                        foreach (XmlAttribute attr in node2.Attributes)
                         {
-                            dict[attr.Name] = attr.Value;
+                            dict2[attr.Name] = attr.Value;
                         }
 
-                        dict["value"] = node2.Value;
+                        dict2["text"] = node2.InnerText;
 
-                        cache.Set($"{m}.{node.Name}.{node2.Name}", dict);
+                        dict[$"{node.Name}.{node2.Name}"] = dict2;
                     }
                 }
-            }
-            return this;
-        }
 
-        public T Get<T>(string key)
-        {
-            return cache.Get<T>(key);
+                cache.Set(m, dict);
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+            }
+
         }
     }
 }

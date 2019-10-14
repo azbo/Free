@@ -1,28 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<sqls tableName="f_user">
-  <field
+<Data table="ky_novel">
+  <Field
     test="user_name,age,sex"
     test2="user_name,age"
     test3="username,sex"
     />
 
-  <insert>
-    <save id="test" result="int">
+  <Insert>
+    <Save id="test" result="int">
       <![CDATA[
       @UserName,@Age,@Sex
       ]]>
-    </save>
-  </insert>
+    </Save>
+  </Insert>
 
-  <remove>
+  <Remove>
 
-  </remove>
+  </Remove>
 
-  <modify>
+  <Modify>
 
-  </modify>
+  </Modify>
 
-  <query>
-   
-  </query>
-</sqls>
+  <Query>
+
+  </Query>
+</Data>

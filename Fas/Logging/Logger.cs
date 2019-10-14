@@ -8,8 +8,6 @@ namespace Fas.Logging
 {
     public class Logger : ILogger
     {
-        static StackTrace st = new StackTrace();
-
         private static Logger Instance { get; } = new Logger();
 
         static Logger()
@@ -32,35 +30,12 @@ namespace Fas.Logging
 
         private static readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public void Debug(string msg, params object[] args)
-        {
-#if (DEBUG)
-            WriteToFile(string.Format(msg, args), "Debug");
-#endif
-        }
+        public static ILogger GetLogger<T>() => Instance.UseType<T>();
 
-        public void Error(string msg, params object[] args)
+        public void Log(string level, string msg, params object[] args)
         {
-            WriteToFile(string.Format(msg, args), "Error");
-        }
+            msg = string.Format(msg, args);
 
-        public void Fatal(string msg, params object[] args)
-        {
-            WriteToFile(string.Format(msg, args), "Fatal");
-        }
-
-        public void Info(string msg, params object[] args)
-        {
-            WriteToFile(string.Format(msg, args), "Info");
-        }
-
-        public void Warn(string msg, params object[] args)
-        {
-            WriteToFile(string.Format(msg, args), "Warn");
-        }
-
-        private static void WriteToFile(string msg, string level)
-        {
             var fas = Config.Instance["fas"];
 
             string logPath = fas["logPath"];
@@ -76,11 +51,6 @@ namespace Fas.Logging
             {
                 _lock.ExitWriteLock();
             }
-        }
-
-        public static ILogger GetLogger<T>()
-        {
-            return Instance.UseType<T>();
         }
     }
 }

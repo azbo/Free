@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Data.Common;
 using System.IO;
 using System.Net.Http;
-using System.Text;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -14,6 +15,8 @@ namespace Fas
     {
         private readonly Dictionary<string, Dictionary<string, string>> _conf = new Dictionary<string, Dictionary<string, string>>();
         private readonly Dictionary<string, string> _env = new Dictionary<string, string>();
+
+        private static readonly MemoryCache cache = new MemoryCache(new MemoryCacheOptions());
 
         public virtual Dictionary<string, string> this[string key]
         {
@@ -73,19 +76,19 @@ namespace Fas
 
         private void LoadLog(XmlNode node)
         {
-            if (node?.Attributes?.Count == null)
+            if (node == null || node.Attributes.Count == 0)
             {
                 _conf["fas"]["logPath"] = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", $"{DateTime.Now.ToString("yyyyMMdd")}.log");
                 _conf["fas"]["logMsg"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " {0} {1} {2}";
             }
             else
             {
-                var nv = new Dictionary<string, string>();
+                var dict = new Dictionary<string, string>();
                 foreach (XmlAttribute attr in node.Attributes)
                 {
-                    nv[attr.Name] = attr.Value;
+                    dict[attr.Name] = attr.Value;
                 }
-                _conf[$"fas.{node.Name}"] = nv;
+                _conf[$"fas.{node.Name}"] = dict;
 
                 string pattern = @"\$\{([@:\w-\s]+)\}";
                 string logPath = _conf["fas.log"]["file"].Replace('_', Path.DirectorySeparatorChar);
@@ -107,7 +110,29 @@ namespace Fas
 
         private void LoadDb(XmlNode node)
         {
+            if (node == null || node.Attributes.Count == 0) return;
 
+            var dict = new Dictionary<string, string>();
+            foreach (XmlAttribute attr in node.Attributes)
+            {
+                dict[attr.Name] = attr.Value;
+            }
+
+            _conf[$"fas.{node.Name}"] = dict;
+
+            foreach (XmlNode node2 in node.ChildNodes)
+            {
+                string[] providers = node2.Attributes["provider"].Value.Split(",");
+                if (providers.Length != 2) throw new Exception("数据库驱动配置错误");
+                dict = new Dictionary<string, string>();
+                foreach (XmlAttribute attr in node2.Attributes)
+                {
+                    dict[attr.Name] = attr.Value;
+                }
+                _conf[$"fas.{node.Name}.{node2.Name}"] = dict;
+
+                cache.Set($"fas.{node.Name}.{node2.Name}.provider", Assembly.Load(providers[0]).GetType(providers[1]).GetField("Instance").GetValue(null));
+            }
         }
 
         private string GetPath(Match match)
@@ -116,6 +141,11 @@ namespace Fas
             string[] formats = value.Split("@");
             if (formats.Length == 2) return DateTime.Now.ToString(formats[1]);
             return this["fas", value] ?? this["fas.log", value] ?? match.Groups[0].Value;
+        }
+
+        public DbProviderFactory GetDbFactory(string key)
+        {
+            return cache.Get<DbProviderFactory>($"fas.db.{key}.provider");
         }
     }
 }

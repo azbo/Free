@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Data table="ky_novel">
+  <Prop>
+    <id column="id" pk="1" type="int" desc="主键"/>
+    <category column="category" type="int" desc="所属分类"/>
+    <title column="title" type="char" desc="名称"/>
+    <author column="author" type="char" desc="作者"/>
+    <pic column="pic" type="varchar" desc="图片"/>
+    <content column="content" type="text" desc="说明"/>
+    <tag column="tag" type="varchar" desc="标签"/>
+    <up column="up" type="mediumint" desc="顶"/>
+    <down column="down" type="mediumint" desc="踩"/>
+    <hits column="hits" type="int" desc="浏览数量"/>
+    <rating column="rating" type="char" desc="评分"/>
+    <ratingCount column="rating_count" type="int" desc="评分人数"/>
+    <serialize column="serialize" type="tinyint" desc="连载"/>
+    <favorites column="favorites" type="int" desc="收藏"/>
+    <position column="position" type="tinyint" desc="推荐位"/>
+    <template column="template" type="varchar" desc="模板"/>
+    <link column="link" type="varchar" desc="外链地址"/>
+    <createTime column="create_time" type="int" desc="创建时间"/>
+    <updateTime column="update_time" type="int" desc="更新时间"/>
+    <reurl column="reurl" type="char" desc="来源"/>
+    <status column="status" type="tinyint" desc="状态"/>
+    <hitsDay column="hits_day" type="int" desc="日浏览"/>
+    <hitsDeek column="hits_week" type="int" desc="周浏览"/>
+    <hitsMonth column="hits_month" type="int" desc="月浏览"/>
+    <hitsTime column="hits_time" type="int" desc="浏览时间"/>
+    <word column="word" type="int" desc="字数"/>
+    <recommend column="recommend" type="int" desc="推荐票"/>
+  </Prop>
+
+  <Field test="category,title" />
+
+  <Where />
+
+  <Insert>
+    <Save id="test" result="int" />
+  </Insert>
+
+  <Delete>
+
+  </Delete>
+
+  <Update>
+
+  </Update>
+
+  <Select>
+
+  </Select>
+</Data>

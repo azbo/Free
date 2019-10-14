@@ -5,13 +5,11 @@ VisualStudioVersion = 16.0.29319.158
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "Web\Web.csproj", "{E6297373-A87C-4AA5-803B-8A41E628211B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service", "Service\Service.csproj", "{B9DFE648-9D44-45A0-BAA4-806284F6B03C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fas", "Fas\Fas.csproj", "{EFF05C3B-3546-491F-9ECB-772CC65CA967}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{1C96F4A7-194D-4FD7-BBE1-727BA669A2EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncStory", "SyncStory\SyncStory.csproj", "{1A10C606-FCBD-486B-90E5-B014708A5E8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncStory", "SyncStory\SyncStory.csproj", "{1A10C606-FCBD-486B-90E5-B014708A5E8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +21,6 @@ Global
 		{E6297373-A87C-4AA5-803B-8A41E628211B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6297373-A87C-4AA5-803B-8A41E628211B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6297373-A87C-4AA5-803B-8A41E628211B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B9DFE648-9D44-45A0-BAA4-806284F6B03C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B9DFE648-9D44-45A0-BAA4-806284F6B03C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B9DFE648-9D44-45A0-BAA4-806284F6B03C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B9DFE648-9D44-45A0-BAA4-806284F6B03C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EFF05C3B-3546-491F-9ECB-772CC65CA967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EFF05C3B-3546-491F-9ECB-772CC65CA967}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFF05C3B-3546-491F-9ECB-772CC65CA967}.Release|Any CPU.ActiveCfg = Release|Any CPU

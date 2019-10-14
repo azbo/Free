@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
 
-namespace Fas.Sql
+namespace Fas
 {
-    public class DbData : Dictionary<string, string>
+    public class DbData : Hashtable
     {
         public DbData(string model)
         {

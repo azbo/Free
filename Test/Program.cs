@@ -1,10 +1,7 @@
 ﻿using Fas;
 using Fas.Logging;
 using Fas.Sql;
-using System.Collections;
-using System.Collections.Specialized;
 using System.Reflection;
-using Test.sql;
 
 namespace Test
 {
@@ -15,7 +12,7 @@ namespace Test
         {
             //MySql.Data.MySqlClient.MySqlClientFactory
 
-            var queryProxy = DispatchProxy.Create<ISqlXml, SqlProxy>();
+            var queryProxy = DispatchProxy.Create<ISql, SqlProxy>();
 
             DbData novel = new DbData("Novel") {
                 {"category","1"},

@@ -1,6 +1,6 @@
 ﻿namespace Fas
 {
-    interface ISql
+    public interface ISql
     {
         int Update<T>(T data, string xmlId);
 

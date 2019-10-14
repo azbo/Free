@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Data table="ky_novel">
+  <Field
+    test="user_name,age,sex"
+    test2="user_name,age"
+    test3="username,sex"
+    />
+
+  <Insert>
+    <Save id="test" result="int">
+      <![CDATA[
+      @UserName,@Age,@Sex
+      ]]>
+    </Save>
+  </Insert>
+
+  <Remove>
+
+  </Remove>
+
+  <Modify>
+
+  </Modify>
+
+  <Query>
+
+  </Query>
+</Data>

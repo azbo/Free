@@ -6,7 +6,7 @@ namespace SyncStory
     {
         static void Main(string[] args)
         {
-
+            var queryProxy = DispatchProxy.Create<ISql, SqlProxy>();
 
             Console.WriteLine("Hello World!");
         }

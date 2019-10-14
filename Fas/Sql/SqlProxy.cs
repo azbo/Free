@@ -52,7 +52,7 @@ namespace Fas.Sql
 
         protected override object Invoke(MethodInfo m, object[] args)
         {
-            ParameterInfo[] infos = m.GetParameters();
+            ParameterInfo[] infos = m.GetParameters(); 
 
             string action = infos[0].ParameterType.Name;
             if (action == "DbData") action = ((DbData)args[0])["model"].ToString();

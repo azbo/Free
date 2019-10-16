@@ -30,12 +30,12 @@
     <recommend column="recommend" type="int" desc="推荐票"/>
   </Prop>
 
-  <Field test="category,title" />
+  <Field syncBook="category, title, author, pic, content, tag, hits, rating, rating_count, create_time, reurl" />
 
   <Where />
 
   <Insert>
-    <Save id="test" result="int" />
+    <insertList id="syncBook" result="int" />
   </Insert>
 
   <Delete>

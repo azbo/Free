@@ -88,12 +88,12 @@ namespace Fas
                 {
                     dict[attr.Name] = attr.Value;
                 }
-                _conf[$"fas.{node.Name}"] = dict;
+                _conf[$"{node.Name}"] = dict;
 
                 string pattern = @"\$\{([@:\w-\s]+)\}";
-                string logPath = _conf["fas.log"]["file"].Replace('_', Path.DirectorySeparatorChar);
+                string logPath = _conf["log"]["file"].Replace('_', Path.DirectorySeparatorChar);
 
-                string logMsg = Regex.Replace(_conf["fas.log"]["msg"], pattern, GetPath);
+                string logMsg = Regex.Replace(_conf["log"]["msg"], pattern, GetPath);
                 string dir = this["fas", "dir"];
                 if (string.IsNullOrEmpty(dir))
                     logPath = logPath.Replace("${dir}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
@@ -118,7 +118,7 @@ namespace Fas
                 dict[attr.Name] = attr.Value;
             }
 
-            _conf[$"fas.{node.Name}"] = dict;
+            _conf[$"{node.Name}"] = dict;
 
             foreach (XmlNode node2 in node.ChildNodes)
             {
@@ -129,9 +129,9 @@ namespace Fas
                 {
                     dict[attr.Name] = attr.Value;
                 }
-                _conf[$"fas.{node.Name}.{node2.Name}"] = dict;
+                _conf[$"{node.Name}.{node2.Name}"] = dict;
 
-                cache.Set($"fas.{node.Name}.{node2.Name}.provider", Assembly.Load(providers[0]).GetType(providers[1]).GetField("Instance").GetValue(null));
+                cache.Set($"{node.Name}.{node2.Name}.provider", Assembly.Load(providers[0]).GetType(providers[1]).GetField("Instance").GetValue(null));
             }
         }
 
@@ -145,7 +145,7 @@ namespace Fas
 
         public DbProviderFactory GetDbFactory(string key)
         {
-            return cache.Get<DbProviderFactory>($"fas.db.{key}.provider");
+            return cache.Get<DbProviderFactory>($"db.{key}.provider");
         }
     }
 }

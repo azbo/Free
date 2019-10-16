@@ -17,7 +17,10 @@ namespace Fas.Util
     }
     public class HttpUtil
     {
-        private static HttpClient http = new HttpClient();
+        private static string accepts = "text/html;application/xhtml+xml;application/xml,0.9;image/webp;*/*,0.8";
+        private static string[] headers = new string[] { "UserAgent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36", "Timeout", "3000", "KeepAlive", "true" };
+
+        private static HttpClient client = new HttpClient(new HttpClientHandler()).SetAccept(accepts);
 
         /// <summary>
         /// 使用Get方法获取字符串结果（没有加入Cookie）
@@ -27,8 +30,8 @@ namespace Fas.Util
         public static async Task<string> GetAsync(string url, Encoding encoding = null)
         {
             if (encoding == null)
-                return await http.GetStringAsync(url);
-            return encoding.GetString(await http.GetByteArrayAsync(url));
+                return await client.GetStringAsync(url);
+            return encoding.GetString(await client.GetByteArrayAsync(url));
         }
 
         /// <summary>
@@ -41,19 +44,14 @@ namespace Fas.Util
         {
             if (encoding == null)
             {
-                var strResult = http.GetStringAsync(url);
+                var strResult = client.GetStringAsync(url);
                 strResult.Wait();
                 return strResult.Result;
             }
 
-            var byteResult = http.GetByteArrayAsync(url);
+            var byteResult = client.GetByteArrayAsync(url);
             byteResult.Wait();
             return encoding.GetString(byteResult.Result);
-        }
-
-        private void SetHeader()
-        {
-
         }
 
         /// <summary>
@@ -64,18 +62,15 @@ namespace Fas.Util
         /// <param name="encoding"></param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static async Task<string> HttpPostAsync(string url, Hashtable data = null, Encoding encoding = null, int timeOut = 10000)
+        public static async Task<string> PostAsync(string url, Hashtable data = null, Encoding encoding = null)
         {
-            HttpClient client = new HttpClient(new HttpClientHandler()).SetAccept();
-            HttpContent hc = new StreamContent(StreamUtil.WriteStream(new MemoryStream(), data.ToFormData(), encoding));
-            hc.Headers.Add("UserAgent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36");
-            hc.Headers.Add("Timeout", timeOut.ToString());
-            hc.Headers.Add("KeepAlive", "true");
-
-            var r = await client.PostAsync(url, hc);
-            byte[] tmp = await r.Content.ReadAsByteArrayAsync();
-
-            return encoding.GetString(tmp);
+            HttpContent hc = new StreamContent(StreamUtil.WriteStream(new MemoryStream(), data.Join(), encoding ?? Encoding.UTF8)).SetHeader(headers);
+            var ret = await client.PostAsync(url, hc);
+            if (encoding == null)
+            {
+                return await ret.Content.ReadAsStringAsync();
+            }
+            return encoding.GetString(await ret.Content.ReadAsByteArrayAsync());
         }
 
         /// <summary>
@@ -86,18 +81,16 @@ namespace Fas.Util
         /// <param name="encoding"></param>
         /// <param name="timeOut"></param>
         /// <returns></returns>
-        public static string Post(string url, Hashtable data = null, Encoding encoding = null, int timeOut = 10000)
+        public static string Post(string url, Hashtable data = null, Encoding encoding = null)
         {
-            HttpClient client = new HttpClient(new HttpClientHandler()).SetAccept();
-            HttpContent hc = new StreamContent(StreamUtil.WriteStream(new MemoryStream(), data.ToFormData(), encoding));
-            hc.Headers.Add("UserAgent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36");
-            hc.Headers.Add("Timeout", timeOut.ToString());
-            hc.Headers.Add("KeepAlive", "true");
+            HttpContent hc = new StreamContent(StreamUtil.WriteStream(new MemoryStream(), data.Join(), encoding ?? Encoding.UTF8)).SetHeader(headers);
+            var ret = client.PostAsync(url, hc);
+            ret.Wait();
 
-            var t = client.PostAsync(url, hc);
-            t.Wait();
-            var t2 = t.Result.Content.ReadAsByteArrayAsync();
-            return encoding.GetString(t2.Result);
+            if (encoding == null)
+                return ret.Result.Content.ReadAsStringAsync().Result;
+
+            return encoding.GetString(ret.Result.Content.ReadAsByteArrayAsync().Result);
         }
     }
 }

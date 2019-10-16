@@ -34,10 +34,7 @@ namespace Fas.Sql
 
             if (pms == null || pms.Length == 0) return cmd;
 
-            foreach (DbParameter p in pms)
-            {
-                cmd.Parameters.Add(p);
-            }
+            cmd.Parameters.AddRange(pms);
 
             return cmd;
         }
@@ -52,10 +49,10 @@ namespace Fas.Sql
 
         protected override object Invoke(MethodInfo m, object[] args)
         {
-            ParameterInfo[] infos = m.GetParameters(); 
+            ParameterInfo[] infos = m.GetParameters();
 
             string action = infos[0].ParameterType.Name;
-            if (action == "DbData") action = ((DbData)args[0])["model"].ToString();
+            if (action == "DbListData") action = ((DbListData)args[0]).ModelName;
 
             SqlConfig sc = new SqlConfig(action);
             string table = sc["Data"]["table"];
@@ -67,10 +64,10 @@ namespace Fas.Sql
 
             Config conf = Config.Instance;
 
-            string db = sc["Data", "db"] ?? conf["fas.db", "conn"];
+            string db = sc["Data", "db"] ?? conf["db", "conn"];
 
             fac = conf.GetDbFactory(db);
-            link = conf[$"fas.db.{db}", "link"];
+            link = conf[$"db.{db}", "link"];
 
             return m.Name switch
             {
@@ -99,28 +96,38 @@ namespace Fas.Sql
 
         private int BuildInsert(string table, string field, object data)
         {
-            DbData dbData = null;
-            if (data is DbData) dbData = (DbData)data;
+            DbListData dbData = null;
+            if (data is DbListData) dbData = (DbListData)data;
 
             string[] fields = field.Split(",");
 
-            DbParameter[] pms = new DbParameter[fields.Length];
+            List<DbParameter> pmList = new List<DbParameter>();
 
-            string values = string.Empty;
-            for (int i = 0; i < fields.Length; i++)
+            StringBuilder sb = new StringBuilder().Append($"insert into {table}({field}) values");
+
+            int m = 0;
+            for (int i = 0; i < dbData.list.Count; i++)
             {
-                string name = $"@{fields[i]}";
+                sb.Append("(");
+                for (int j = 0; j < fields.Length; j++)
+                {
+                    string k = fields[j].Trim(' ');
+                    string name = $"@{k}{m}";
+                    m++;
+                    DbParameter pm = fac.CreateParameter();
+                    pm.ParameterName = name;
+                    pm.Value = dbData.list[i][k];
+                    pmList.Add(pm);
 
-                DbParameter pm = fac.CreateParameter();
-                pm.ParameterName = name;
-                pm.Value = dbData[fields[i]];
-                pms[i] = pm;
-                
-                values += i == fields.Length - 1 ? name : $"{fields[i]},";
+                    sb.Append(name);
+                    if (j != fields.Length - 1) sb.Append(",");
+
+                }
+                sb.Append(")");
+                if (i != dbData.list.Count - 1) sb.Append(",");
             }
 
-            string sql = $"insert into {table}({field}) values({values})";
-            return ExecuteNonQuery(sql, pms);
+            return ExecuteNonQuery(sb.ToString(), pmList.ToArray());
         }
     }
 }

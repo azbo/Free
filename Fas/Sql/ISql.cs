@@ -2,12 +2,12 @@
 {
     public interface ISql
     {
-        int Update<T>(T data, string xmlId);
+        int update<T>(T data, string xmlId);
 
-        object Insert<T>(T data, string xmlId);
+        object insert<T>(T data, string xmlId);
 
-        int Delete<T>(T data, string xmlId);
+        int delete<T>(T data, string xmlId);
 
-        T Select<T>(T data, string xmlId);
+        T select<T>(T data, string xmlId);
     }
 }

@@ -36,10 +36,8 @@ namespace Fas.Logging
         {
             msg = string.Format(msg, args);
 
-            var fas = Config.Instance["fas"];
-
-            string logPath = fas["logPath"];
-            string logMsg = fas["logMsg"];
+            string logPath = "${dir}_zxzy_root_${@yyyyMMdd}.log";
+            string logMsg = "${@yyyy-MM-dd HH:mm:ss} {0} {1} {2}";
 
             _lock.EnterWriteLock();
             try

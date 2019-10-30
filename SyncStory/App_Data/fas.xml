@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <fas>
-  <db conn="ky_story">
+  <db>
     <ky_story provider="MySql.Data,MySql.Data.MySqlClient.MySqlClientFactory" link="server=103.224.250.145;database=ky_story;PORT=3306;uid=ky_story;pwd=dw6yLRPGErfNMK2w;" />
+    <ky_story2 provider="MySql.Data,MySql.Data.MySqlClient.MySqlClientFactory" link="server=103.224.250.145;database=ky_story;PORT=3306;uid=ky_story;pwd=dw6yLRPGErfNMK2w;" />
   </db>
 
   <log level="warn" file="${dir}_zxzy_root_${@yyyyMMdd}.log" msg="${@yyyy-MM-dd HH:mm:ss} {0} {1} {2}"/>

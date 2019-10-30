@@ -1,7 +1,6 @@
 ﻿using Fas;
 using Fas.Sql;
 using Fas.Util;
-using Fas.Util.Extend;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -52,7 +51,7 @@ namespace SyncStory
             {
                 string result = HttpUtil.Get($"{baseUrl}book/list?wordFilter=0&fullFlag=0&clsIdSecond=0&pageNo={page}&orderBy=read_cnt&clsIdFirst={clsId}");
                 JsonElement datas = JsonSerializer.Deserialize<JsonElement>(result).GetProperty("data");
-                DbListData dbDatas = new DbListData("Novel");
+                DbListData dbDatas = new DbListData("novel");
                 for (int i = 0; i < datas.GetArrayLength(); i++)
                 {
                     var data = datas[i];
@@ -74,7 +73,7 @@ namespace SyncStory
 
                 var sqlProxy = DispatchProxy.Create<ISql, SqlProxy>();
 
-                sqlProxy.Insert(dbDatas, "insertList");
+                sqlProxy.insert(dbDatas, "list");
             }
             catch (Exception ex)
             {

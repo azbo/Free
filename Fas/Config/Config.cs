@@ -1,41 +1,38 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Fas.Sql;
+using Fas.Util;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
-using System.Net.Http;
 using System.Reflection;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Fas
 {
     public class Config
     {
-        private readonly Dictionary<string, Dictionary<string, string>> _conf = new Dictionary<string, Dictionary<string, string>>();
-        private readonly Dictionary<string, string> _env = new Dictionary<string, string>();
+        private readonly Hashtable _ht = new Hashtable();
+        private readonly XmlDocument _doc = new XmlDocument();
 
-        private static readonly MemoryCache cache = new MemoryCache(new MemoryCacheOptions());
-
-        public virtual Dictionary<string, string> this[string key]
-        {
-            get
-            {
-                return _conf[key];
-            }
-        }
-
-        public virtual string this[string k1, string k2]
-        {
-            get
-            {
-                if (_conf[k1].ContainsKey(k2)) return _conf[k1][k2];
-                return null;
-            }
-        }
+        private readonly Dictionary<string, DbProvider> _dbs = new Dictionary<string, DbProvider>();
 
         public static Config Instance { get; } = new Config();
+
+        public virtual dynamic this[string key]
+        {
+            get
+            {
+                dynamic d = _ht;
+
+                string[] keys = key.Split(".");
+                for (int i = 0; i < keys.Length; i++)
+                {
+                    d = d[keys[i]];
+                }
+                return d;
+            }
+        }
 
         static Config()
         {
@@ -44,108 +41,61 @@ namespace Fas
 
         private Config()
         {
-            string confPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "fas.xml");
-            if (!File.Exists(confPath))
+            string app = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data");
+            if (!Directory.Exists(app)) return;
+
+            string[] files = Directory.GetFiles(app);
+            foreach (string file in files)
             {
-                return;
+                LoadAppData(file);
             }
 
-            XmlDocument x = new XmlDocument();
-            x.Load(confPath);
-            string url = Environment.GetEnvironmentVariable("FASURL");
-            if (!string.IsNullOrEmpty(url))
+            FileSystemWatcher watch = new FileSystemWatcher(app)
             {
-                string result = new HttpClient().GetAsync(url).Result.Content.ReadAsStringAsync().Result;
-                _env = JsonSerializer.Deserialize<Dictionary<string, string>>(result);
-            }
+                EnableRaisingEvents = true,
+            };
 
-            XmlNode doc = x.DocumentElement;
-
-            var dict = new Dictionary<string, string>();
-            foreach (XmlAttribute attr in doc.Attributes)
+            watch.Changed += delegate (object sender, FileSystemEventArgs e)
             {
-                dict[attr.Name] = attr.Value;
-            }
-
-            _conf["fas"] = dict;
-
-            LoadLog(doc.SelectSingleNode("log"));
-
-            LoadDb(doc.SelectSingleNode("db"));
+                LoadAppData(e.FullPath);
+            };
         }
 
-        private void LoadLog(XmlNode node)
+        private void LoadAppData(string path)
         {
-            if (node == null || node.Attributes.Count == 0)
+            _doc.Load(path);
+
+            XmlNode root = _doc.DocumentElement;
+            var ht = root.ToHashtable();
+
+            LoadXml(root, ht);
+            _ht[root.Name] = ht;
+        }
+
+        private void LoadXml(XmlNode root, Hashtable ht)
+        {
+            foreach (XmlNode node in root.ChildNodes)
             {
-                _conf["fas"]["logPath"] = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", $"{DateTime.Now.ToString("yyyyMMdd")}.log");
-                _conf["fas"]["logMsg"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " {0} {1} {2}";
-            }
-            else
-            {
-                var dict = new Dictionary<string, string>();
-                foreach (XmlAttribute attr in node.Attributes)
+                if (root.Name == "db")
                 {
-                    dict[attr.Name] = attr.Value;
+                    string[] providers = node.Attributes["provider"].Value.Split(",");
+                    _dbs[node.Name] = new DbProvider(
+                        (DbProviderFactory)Assembly.Load(providers[0]).GetType(providers[1]).GetField("Instance").GetValue(null),
+                        node.Attributes["link"].Value);
+                    continue;
                 }
-                _conf[$"{node.Name}"] = dict;
 
-                string pattern = @"\$\{([@:\w-\s]+)\}";
-                string logPath = _conf["log"]["file"].Replace('_', Path.DirectorySeparatorChar);
+                Hashtable ht2 = node.ToHashtable();
+                ht[node.Name] = ht2;
 
-                string logMsg = Regex.Replace(_conf["log"]["msg"], pattern, GetPath);
-                string dir = this["fas", "dir"];
-                if (string.IsNullOrEmpty(dir))
-                    logPath = logPath.Replace("${dir}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
-
-                logPath = Regex.Replace(logPath, pattern, GetPath);
-
-                _conf["fas"]["logPath"] = logPath;
-                _conf["fas"]["logMsg"] = logMsg;
+                LoadXml(node, ht2);
             }
 
-            string path = Path.GetDirectoryName(_conf["fas"]["logPath"]);
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         }
 
-        private void LoadDb(XmlNode node)
+        public DbProvider GetDbFactory(string key)
         {
-            if (node == null || node.Attributes.Count == 0) return;
-
-            var dict = new Dictionary<string, string>();
-            foreach (XmlAttribute attr in node.Attributes)
-            {
-                dict[attr.Name] = attr.Value;
-            }
-
-            _conf[$"{node.Name}"] = dict;
-
-            foreach (XmlNode node2 in node.ChildNodes)
-            {
-                string[] providers = node2.Attributes["provider"].Value.Split(",");
-                if (providers.Length != 2) throw new Exception("数据库驱动配置错误");
-                dict = new Dictionary<string, string>();
-                foreach (XmlAttribute attr in node2.Attributes)
-                {
-                    dict[attr.Name] = attr.Value;
-                }
-                _conf[$"{node.Name}.{node2.Name}"] = dict;
-
-                cache.Set($"{node.Name}.{node2.Name}.provider", Assembly.Load(providers[0]).GetType(providers[1]).GetField("Instance").GetValue(null));
-            }
-        }
-
-        private string GetPath(Match match)
-        {
-            string value = match.Groups[1].Value;
-            string[] formats = value.Split("@");
-            if (formats.Length == 2) return DateTime.Now.ToString(formats[1]);
-            return this["fas", value] ?? this["fas.log", value] ?? match.Groups[0].Value;
-        }
-
-        public DbProviderFactory GetDbFactory(string key)
-        {
-            return cache.Get<DbProviderFactory>($"db.{key}.provider");
+            return _dbs[key];
         }
     }
 }

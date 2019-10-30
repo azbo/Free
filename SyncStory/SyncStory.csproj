@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.6.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0-preview1.19504.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="3.1.0-preview1.19506.1" />
     <PackageReference Include="MySql.Data" Version="8.0.18" />
   </ItemGroup>
 
@@ -15,13 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="App_Data\fas.xml">
+    <None Update="App_Data\Fas.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="App_Data\Novel.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="App_Data\NovelChapter.xml">
+    <None Update="App_Data\novel.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

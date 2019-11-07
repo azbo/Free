@@ -40,46 +40,52 @@ namespace SyncStory
 
                 foreach ((string id, string name) t in _t)
                 {
-                    ListBook(_s.id, 1, t.id);
+                    try
+                    {
+                        insertBooks(_s.id, 1, t.id);
+                    }
+                    catch (Exception e)
+                    {
+
+                        break;
+                    }
                 }
             }
         }
 
-        public void ListBook(string category, int page, string clsId)
+        public void insertBooks(string category, int page, string clsId)
         {
-            try
+
+            string result = HttpUtil.Get($"{baseUrl}book/list?wordFilter=0&fullFlag=0&clsIdSecond=0&pageNo={page}&orderBy=read_cnt&clsIdFirst={clsId}");
+            JsonElement datas = JsonSerializer.Deserialize<JsonElement>(result).GetProperty("data");
+            List<Hashtable> dataList = new List<Hashtable>();
+            for (int i = 0; i < datas.GetArrayLength(); i++)
             {
-                string result = HttpUtil.Get($"{baseUrl}book/list?wordFilter=0&fullFlag=0&clsIdSecond=0&pageNo={page}&orderBy=read_cnt&clsIdFirst={clsId}");
-                JsonElement datas = JsonSerializer.Deserialize<JsonElement>(result).GetProperty("data");
-                DbListData dbDatas = new DbListData("novel");
-                for (int i = 0; i < datas.GetArrayLength(); i++)
-                {
-                    var data = datas[i];
+                var data = datas[i];
 
-                    Hashtable ht = new Hashtable();
-                    ht["category"] = category;
-                    ht["title"] = data.GetProperty("name").ToString();
-                    ht["author"] = data.GetProperty("author").ToString();
-                    ht["pic"] = data.GetProperty("photoPath").ToString();
-                    ht["content"] = data.GetProperty("intro").ToString();
-                    ht["tag"] = data.GetProperty("clsName").ToString();
-                    ht["hits"] = data.GetProperty("readCnt").ToString();
-                    ht["rating"] = data.GetProperty("strScore").ToString();
-                    ht["rating_count"] = data.GetProperty("score").ToString();
-                    ht["create_time"] = DateTime.Now.ToTimeStamp() / 1000;
-                    ht["reurl"] = $"{baseUrl}book/info?bookId={data.GetProperty("id").ToString()}";
-                    dbDatas.list.Add(ht);
-                }
-
-                var sqlProxy = DispatchProxy.Create<ISql, SqlProxy>();
-
-                sqlProxy.insert(dbDatas, "list");
+                Hashtable ht = new Hashtable();
+                ht["category"] = category;
+                ht["title"] = data.GetProperty("name").ToString();
+                ht["author"] = data.GetProperty("author").ToString();
+                ht["pic"] = data.GetProperty("photoPath").ToString();
+                ht["content"] = data.GetProperty("intro").ToString();
+                ht["tag"] = data.GetProperty("clsName").ToString();
+                ht["hits"] = data.GetProperty("readCnt").ToString();
+                ht["rating"] = data.GetProperty("strScore").ToString();
+                ht["rating_count"] = data.GetProperty("score").ToString();
+                ht["create_time"] = DateTime.Now.ToTimeStamp() / 1000;
+                ht["reurl"] = $"{baseUrl}book/info?bookId={data.GetProperty("id").ToString()}";
+                dataList.Add(ht);
             }
-            catch (Exception ex)
-            {
 
-                throw;
-            }
+            //var sql = DispatchProxy.Create<ISql, SqlProxy>();
+            //sql.Insert();
+
+            Sql sql = new Sql("novel");
+
+            sql.Insert(dataList);
+
+            //sqlProxy.insert(dbDatas, "sync");
         }
 
         public void GetBookInfo(string bookId)

@@ -1,4 +1,5 @@
 ﻿using Fas.Util;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
@@ -24,16 +25,18 @@ namespace Fas.Sql
             return cnt;
         }
 
-        private DbCommand GetCommand(DbConnection cnt, string sql, params DbParameter[] pms)
+        private DbCommand GetCommand(DbConnection cnt, string sql, List<DbParameter> pmList)
         {
             DbCommand cmd = cnt.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = CommandType.Text;
 
-            if (pms == null || pms.Length == 0) return cmd;
+            if (pmList == null || pmList.Count == 0) return cmd;
 
-            cmd.Parameters.AddRange(pms);
-
+            foreach (DbParameter pm in pmList)
+            {
+                cmd.Parameters.Add(pm);
+            }
             return cmd;
         }
 
@@ -46,11 +49,11 @@ namespace Fas.Sql
             return pm;
         }
 
-        public int ExecuteNonQuery(string sql, params DbParameter[] pms)
+        public int ExecuteNonQuery(string sql, List<DbParameter> pmList)
         {
             using (DbConnection cnt = GetConnection())
             {
-                return GetCommand(cnt, sql, pms).ExecuteNonQuery();
+                return GetCommand(cnt, sql, pmList).ExecuteNonQuery();
             }
         }
     }

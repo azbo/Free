@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Reflection;
@@ -6,64 +7,94 @@ using System.Text;
 
 namespace Fas.Sql
 {
+    /**
+        var sql = DispatchProxy.Create<ISql, SqlProxy>();
+           sql.Field("sync").ExecuteNonQuery();
+        */
     public class SqlProxy : DispatchProxy
     {
+
         private DbProvider _db;
         protected override object Invoke(MethodInfo m, object[] args)
         {
             ParameterInfo[] infos = m.GetParameters();
 
-            string action = infos[0].ParameterType.Name;
-            if (action == "DbListData") action = ((DbListData)args[0]).ModelName;
-            Config conf = Config.Instance;
+            string name = infos[0].ParameterType.Name;
+            if (name == "DbListData") name = ((DbListData)args[0]).ModelName;
 
-            string table = conf[$"{action}.table"];
-            string field = conf[$"{action}.field.{conf[$"{action}.{m.Name}.{args[1]}.id"]}"];
 
-            _db = conf.GetDbFactory(conf[$"{action}.db"]);
+            return m.GetType();
 
-            var prop = conf[$"{action}.prop"];
+            /**
             return m.Name switch
             {
-                "insert" => BuildInsert(table, prop, field, args[0]),
-                "remove" => BuildRemove(table, prop, field, args[0]),
-                "update" => BuildModify(table, prop, field, args[0]),
-                "select" => BuildQuery(table, prop, field, args[0]),
+                "insert" => BuildInsert(name, args),
+                "delete" => BuildDelete(name, args),
+                "update" => BuildUpdate(name, args),
+                "select" => BuildSelect(name, args),
                 _ => ""
             };
+    */
         }
 
-        private object BuildQuery(string table, dynamic prop, string field, object v)
+        private object BuildSelect(string name, object[] args)
         {
             throw new NotImplementedException();
         }
 
-        private object BuildRemove(string table, dynamic prop, string field, object v)
+        private object BuildDelete(string model, object[] args)
+        {
+            Config conf = Config.Instance;
+
+            dynamic data = args[0];
+
+            _db = conf.GetDbFactory(conf[$"{model}.db"]);
+
+            string table = conf[$"{model}.table"];
+            string condition = conf[$"{model}.condition.{args[1]}"];
+            var prop = conf[$"{model}.prop"];
+
+            string sql = $"delete from {table} {condition}";
+
+            DbParameter[] pms = new DbParameter[] { };
+
+            return 1;
+        }
+
+        private object BuildUpdate(string name, object[] args)
         {
             throw new NotImplementedException();
         }
 
-        private object BuildModify(string table, dynamic prop, string field, object v)
+        private int BuildInsert(string model, object[] args)
         {
-            throw new NotImplementedException();
-        }
+            Config conf = Config.Instance;
 
-        private int BuildInsert(string table, dynamic prop, string field, dynamic data)
-        {
-            StringBuilder sb = new StringBuilder()
-                .Append($"insert into {table}({field}) values");
+            dynamic data = args[0];
 
-            string[] fields = field.Split(",");
+            _db = conf.GetDbFactory(conf[$"{model}.db"]);
+
+            string table = conf[$"{model}.table"];
+            string[] fields = conf[$"{model}.field.{args[1]}"];
+            var prop = conf[$"{model}.prop"];
 
             List<DbParameter> pmList = new List<DbParameter>();
 
+            string sql = "insert into {0} ({1}) values {2}";
             int m = 0;
+            string field = "", values = "";
             for (int i = 0; i < data.list.Count; i++)
             {
-                sb.Append("(");
+                values += "(";
                 for (int j = 0; j < fields.Length; j++)
                 {
                     string k = fields[j];
+                    if (m == 0)
+                    {
+                        field += k;
+                        if (j != fields.Length - 1) field += ",";
+                    }
+
                     string name = $"@{k}{m}";
 
                     string value = "";
@@ -76,14 +107,14 @@ namespace Fas.Sql
 
                     pmList.Add(_db.CreateParameter(name, value, prop[k]["type"]));
 
-                    sb.Append(name);
-                    if (j != fields.Length - 1) sb.Append(",");
+                    values += name;
+                    if (j != fields.Length - 1) values += ",";
                     m++;
                 }
-                sb.Append(")");
-                if (i != data.list.Count - 1) sb.Append(",");
+                values += ")";
+                if (i != data.list.Count - 1) values += ",";
             }
-            return _db.ExecuteNonQuery(sb.ToString(), pmList.ToArray());
+            return _db.ExecuteNonQuery(string.Format(sql, table, field, values), pmList);
         }
     }
 }

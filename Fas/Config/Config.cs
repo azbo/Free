@@ -55,10 +55,7 @@ namespace Fas
                 EnableRaisingEvents = true,
             };
 
-            watch.Changed += delegate (object sender, FileSystemEventArgs e)
-            {
-                LoadAppData(e.FullPath);
-            };
+            watch.Changed += (object sender, FileSystemEventArgs e) => LoadAppData(e.FullPath);
         }
 
         private void LoadAppData(string path)

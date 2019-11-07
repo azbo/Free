@@ -1,13 +1,18 @@
-﻿namespace Fas
+﻿using System.Collections;
+using System.Collections.Generic;
+
+namespace Fas
 {
     public interface ISql
     {
-        int update<T>(T data, string xmlId);
+        ISql Field(string field);
 
-        object insert<T>(T data, string xmlId);
+        ISql Inner(string id);
 
-        int delete<T>(T data, string xmlId);
-
-        T select<T>(T data, string xmlId);
+        ISql Where(string id);
+        ISql OrderBy(string id);
+        ISql GroupBy(string id);
+        ISql Having(string id);
+        ISql Limit(string id);
     }
 }

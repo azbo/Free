@@ -30,23 +30,22 @@
     <recommend type="int" desc="推荐票"/>
   </prop>
 
-  <field syncBook="category, title, author, pic, content, tag, hits, rating, rating_count, create_time, reurl" />
+  <field
+    all="*"
+    set="category,title"
+    find="categoy,title,author"
+    sync="category, title, author, pic, content, tag, hits, rating, rating_count, create_time, reurl"
+  />
 
-  <condition />
+  <inner />
 
-  <insert>
-    <list id="syncBook" result="int" />
-  </insert>
+  <condition
+    byTitle="where title=@title"
+  />
 
-  <delete>
-    <deleteList />
-  </delete>
-
-  <update>
-
-  </update>
+  <orderby/>
 
   <select>
-
+    <find condition="byid" />
   </select>
 </novel>
